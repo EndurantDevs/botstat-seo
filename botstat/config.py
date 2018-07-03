@@ -7,24 +7,19 @@ from pyparsing import removeQuotes
 
 REGEX_SPECIAL_CHARS = r'([\.\*\+\?\|\(\)\{\}\[\]])'
 REGEX_LOG_FORMAT_VARIABLE = r'\$([a-z0-9\_]+)'
-LOG_FORMAT_COMBINED = '$remote_addr - $remote_user [$time_local] ' \
-                      '"$request" $status $body_bytes_sent ' \
-                      '"$http_referer" "$http_user_agent"'
-LOG_FORMAT_COMMON = '$remote_addr - $remote_user [$time_local] ' \
-                    '"$request" $status $body_bytes_sent ' \
-                    '"$http_x_forwarded_for"'
+LOG_FORMATS = {"combined":'$remote_addr - $remote_user [$time_local] ' \
+                          '"$request" $status $body_bytes_sent ' \
+                          '"$http_referer" "$http_user_agent"',
+               "common":'$remote_addr - $remote_user [$time_local] ' \
+                        '"$request" $status $body_bytes_sent ' \
+                        '"$http_x_forwarded_for"'}
 
 semicolon = Literal(';').suppress()
-# nginx string parameter can contain any character except: { ; " '
 parameter = Word(''.join(c for c in printables if c not in set('{;"\''))) \
             | quotedString.setParseAction(removeQuotes)
 
 
-def detect_config_path():
-    """
-    Get nginx configuration file path based on `nginx -V` output
-    :return: detected nginx configuration file path
-    """
+def detect_nginx_config_path():
     try:
         proc = subprocess.Popen(['nginx', '-V'], stderr=subprocess.PIPE)
     except OSError:
@@ -42,11 +37,7 @@ def detect_config_path():
     return '/etc/nginx/nginx.conf'
 
 
-def get_access_logs(config):
-    """
-    Parse config for access_log directives
-    :return: iterator over ('path', 'format name') tuple of found directives
-    """
+def extract_access_logs(config):
     access_log = Literal("access_log") + ZeroOrMore(parameter) + semicolon
     access_log.ignore(pythonStyleComment)
     for directive in access_log.searchString(config).asList():
@@ -59,11 +50,7 @@ def get_access_logs(config):
         yield path, format_name
 
 
-def get_log_formats(config):
-    """
-    Parse config for log_format directives
-    :return: iterator over ('format name', 'format string') tuple of found directives
-    """
+def extract_log_format(config):
     log_format = Literal('log_format') + parameter + Group(OneOrMore(parameter)) + semicolon
     log_format.ignore(pythonStyleComment)
     for directive in log_format.searchString(config).asList():
@@ -76,7 +63,7 @@ def choose_one(choices, prompt):
     for idx, choice in enumerate(choices):
         print('%d. %s' % (idx + 1, choice))
     selected = None
-    while not selected or selected <= 0 or selected > len(choices):
+    while selected is None or not 0 <= selected > len(choices):
         selected = raw_input(prompt)
         try:
             selected = int(selected)
@@ -86,26 +73,22 @@ def choose_one(choices, prompt):
 
 
 def detect_log_config(arguments):
-    """
-    Detect access log config (path and format) of nginx. 
-    :return: path and format of detected / selected access log
-    """
     config = arguments.nginx_config
     if config is None:
-        config = detect_config_path()
+        config = detect_nginx_config_path()
     if not os.path.exists(config):
         raise SystemExit('Nginx config file not found: %s' % config)
     with open(config) as f:
         config_str = f.read()
-    access_logs = dict(get_access_logs(config_str))
+    access_logs = dict(extract_access_logs(config_str))
     if not access_logs:
         raise SystemExit('Access log file is not provided and ngxtop cannot detect '
                          'it from your config file (%s).' % config)
-    log_formats = dict(get_log_formats(config_str))
+    log_formats = dict(extract_log_format(config_str))
     if len(access_logs) == 1:
         log_path, format_name = access_logs.items()[0]
         if format_name == 'combined':
-            return log_path, LOG_FORMAT_COMBINED
+            return log_path, LOG_FORMATS["combined"]
         if format_name not in log_formats:
             raise SystemExit('Incorrect format name set in config for access log file "%s"' % log_path)
         return log_path, log_formats[format_name]
@@ -117,28 +100,9 @@ def detect_log_config(arguments):
     return log_path, log_formats[format_name]
 
 
-def build_pattern(log_format):
-    """
-    Build regular expression to parse given format.
-    :param log_format: format string to parse
-    :return: regular expression to parse given format
-    """
-    if log_format == 'combined':
-        log_format = LOG_FORMAT_COMBINED
-    elif log_format == 'common':
-        log_format = LOG_FORMAT_COMMON
+def build_log_format_regex(log_format):
+    if log_format in LOG_FORMATS:
+        log_format = LOG_FORMATS[log_format]
     pattern = re.sub(REGEX_SPECIAL_CHARS, r'\\\1', log_format)
     pattern = re.sub(REGEX_LOG_FORMAT_VARIABLE, '(?P<\\1>.*)', pattern)
     return re.compile(pattern)
-
-
-def extract_variables(log_format):
-    """
-    Extract all variables from a log format string.
-    :param log_format: format string to extract
-    :return: iterator over all variables in given format string
-    """
-    if log_format == 'combined':
-        log_format = LOG_FORMAT_COMBINED
-    for match in re.findall(REGEX_LOG_FORMAT_VARIABLE, log_format):
-        yield match
