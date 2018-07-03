@@ -5,6 +5,8 @@ import os
 from config import detect_log_config
 from config import detect_nginx_config_path
 from config import build_log_format_regex
+from dateutil import parser
+import datetime
 
 
 def configure_logging(args):
@@ -26,8 +28,24 @@ def parse_argumets():
                                              "names with $")
     parser.add_argument("--nginx_config", help="Nginx config file name with path")
     parser.add_argument("--access_log", help="Access log file name. If not specify used stdin.")
+    parser.add_argument("--day_start", type=int, help="Days from the beginning of today, all older records skipped")
+    parser.add_argument("--date_start", help="Start date for parsing log, all older records skipped")
     return parser.parse_args()
 
+
+def make_stats(records, args):
+    if args.date_start:
+        date_start = parser.parse(args.date_start).date()
+    elif args.day_start:
+        date_start = datetime.date.today() - datetime.timedelta(days=args.day_start)
+    else:
+        date_start = None
+    logging.debug("Date start: %s", date_start)
+    for record in records:
+        if date_start is not None:
+            record_time = parser.parse(record['time_local'], fuzzy=True).date()
+            if record_time >= date_start:
+                print record
 
 def main():
     args = parse_argumets()
@@ -52,7 +70,7 @@ def main():
     logging.debug("Log parse regexp: %s", parser.pattern)
     matches = (parser.match(l) for l in stream)
     records = (m.groupdict() for m in matches if m is not None)
-
+    stats = make_stats(records, args)
 
 if __name__ == '__main__':
     main()
