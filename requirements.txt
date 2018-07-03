@@ -1,0 +1,6 @@
+dateutils==0.6.6
+pyparsing==2.2.0
+python-dateutil==2.7.3
+pytz==2018.5
+six==1.11.0
+tabulate==0.8.2
