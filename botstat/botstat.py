@@ -3,10 +3,12 @@ import logging
 import argparse
 import os
 from config import detect_log_config
-from config import detect_nginx_config_path
 from config import build_log_format_regex
 from dateutil import parser
 import datetime
+from collections import defaultdict
+import csv
+from tempfile import NamedTemporaryFile
 
 
 def configure_logging(args):
@@ -41,11 +43,51 @@ def make_stats(records, args):
     else:
         date_start = None
     logging.debug("Date start: %s", date_start)
+    #date -> bot -> vhost -> {2xx, 3xx, 4xx, 5xx} -> { count, bytes, time }
+    stats = defaultdict(            #date
+        lambda:defaultdict(         #bot name
+            lambda: defaultdict(    #vhost
+                lambda:defaultdict( #http code
+                    lambda:{'count':0, 'bytes':0, 'time':.0}
+                )
+            )
+        )
+    )
     for record in records:
         if date_start is not None:
-            record_time = parser.parse(record['time_local'], fuzzy=True).date()
-            if record_time >= date_start:
-                print record
+            record_date = parser.parse(record['time_local'], fuzzy=True).date()
+            if record_date >= date_start:
+                for bot in ('Googlebot', 'bingbot'):
+                    if bot in record['http_user_agent']:
+                        status = (int(record['status'])/100)*100
+                        stats[record_date][bot][record['host']][status]['count'] += 1
+                        stats[record_date][bot][record['host']][status]['bytes'] += int(record['body_bytes_sent'])
+                        stats[record_date][bot][record['host']][status]['time'] += float(record['request_time'])
+                        break
+    return stats
+
+def make_csv(stats, stream):
+    writer = csv.writer(stream)
+    header = ["date", "bot", "vhost", "hits_2xx", "hits_3xx", "hits_4xx",
+              "hits_5xx", "hits_all", "total_time_all", "total_time_2xx",
+              "total_time_5xx", "bytes_all", "avg_time_all", "avg_time_2xx",
+              "avg_bytes_all", "avg_bytes_2xx"]
+    writer.writerow(header)
+    for date, bot_data in stats.iteritems():
+        for bot, host_data in bot_data.iteritems():
+            for host, data in host_data.iteritems():
+                writer.writerow([date.strftime('%Y/%m/%d'), bot, host,
+                                 data[200]['count'], data[300]['count'], data[400]['count'], data[500]['count'],  #hits
+                                 sum(x['count'] for x in data.itervalues()), # hits_all
+                                 sum(x['time'] for x in data.itervalues()),  # total_time_all
+                                 data[200]['time'], data[300]['time'], data[400]['time'], data[500]['time'],
+                                 sum(x['bytes'] for x in data.itervalues()), # bytes_all
+                                 sum(x['time'] for x in data.itervalues())/len(data.keys()), # avg_time_all
+                                 data[200]['time'],# avg_time_2xx
+                                 sum(x['bytes'] for x in data.itervalues())/len(data.keys()), # avg_bytes_all
+                                 data[200]['bytes']# avg_bytes_2xx
+                                 ])
+
 
 def main():
     args = parse_argumets()
@@ -71,6 +113,9 @@ def main():
     matches = (parser.match(l) for l in stream)
     records = (m.groupdict() for m in matches if m is not None)
     stats = make_stats(records, args)
+    with NamedTemporaryFile(delete=False) as output_file:
+        make_csv(stats, output_file)
+        print "Result file (only for debug):", output_file.name
 
 if __name__ == '__main__':
     main()
