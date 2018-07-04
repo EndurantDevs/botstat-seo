@@ -85,8 +85,11 @@ def make_csv(stats, stream):
     for date, bot_data in stats.iteritems():
         for bot, host_data in bot_data.iteritems():
             for host, data in host_data.iteritems():
-                writer.writerow([date.strftime('%Y/%m/%d'), bot, host,
-                                 data[200]['count'], data[300]['count'], data[400]['count'], data[500]['count'],  #hits
+                writer.writerow([date.strftime('%Y/%m/%d'), bot, host, # date, bot, vhost
+                                 data[200]['count'], # hits_2xx
+                                 data[300]['count'], # hits_3xx
+                                 data[400]['count'], # hits_4xx
+                                 data[500]['count'], # hits_5xx
                                  sum(x['count'] for x in data.itervalues()), # hits_all
                                  sum(x['time'] for x in data.itervalues()),  # total_time_all
                                  data[200]['time'], data[300]['time'], data[400]['time'], data[500]['time'],
