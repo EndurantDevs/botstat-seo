@@ -7,11 +7,11 @@ import datetime
 from collections import defaultdict
 import csv
 import apache_log_parser
-from log_processing import detect_log_config
-from log_processing import build_log_format_regex
-from log_processing import check_regex_required_fields
+from .log_processing import detect_log_config
+from .log_processing import build_log_format_regex
+from .log_processing import check_regex_required_fields
 from tempfile import NamedTemporaryFile
-from mail import send_mail
+from .mail import send_mail
 
 
 def configure_logging(args):
@@ -86,22 +86,40 @@ def make_csv(stats, stream):
               "total_time_5xx", "bytes_all", "avg_time_all", "avg_time_2xx",
               "avg_bytes_all", "avg_bytes_2xx"]
     writer.writerow(header)
-    for date, bot_data in stats.iteritems():
-        for bot, host_data in bot_data.iteritems():
-            for host, data in host_data.iteritems():
+
+    try:
+        stats_items = stats.iteritems()
+    except AttributeError:
+        stats_items = stats.items()
+
+    for date, bot_data in stats_items:
+        try:
+            bot_data_items = bot_data.iteritems()
+        except AttributeError:
+            bot_data_items = bot_data.items()
+        for bot, host_data in bot_data_items:
+            try:
+                host_data_items = host_data.iteritems()
+            except AttributeError:
+                host_data_items = host_data.items()
+            for host, data in host_data_items:
+                try:
+                    data_itervalues = data.itervalues()
+                except AttributeError:
+                    data_itervalues = data.values()
                 writer.writerow([date.strftime('%Y/%m/%d'), bot, host, # date, bot, vhost
                                  data[200]['count'], # hits_2xx
                                  data[300]['count'], # hits_3xx
                                  data[400]['count'], # hits_4xx
                                  data[500]['count'], # hits_5xx
-                                 sum(x['count'] for x in data.itervalues()), # hits_all
-                                 sum(x['time'] for x in data.itervalues()),  # total_time_all
+                                 sum(x['count'] for x in data_itervalues), # hits_all
+                                 sum(x['time'] for x in data_itervalues),  # total_time_all
                                  data[200]['time'], # total_time_2xx
                                  data[500]['time'], # total_time_5xx
-                                 sum(x['bytes'] for x in data.itervalues()), # bytes_all
-                                 sum(x['time'] for x in data.itervalues())/(len(data.keys()) or 1), # avg_time_all
+                                 sum(x['bytes'] for x in data_itervalues), # bytes_all
+                                 sum(x['time'] for x in data_itervalues)/(len(data.keys()) or 1), # avg_time_all
                                  data[200]['time'] / (data[200]['count'] or 1), # avg_time_2xx
-                                 sum(x['bytes'] for x in data.itervalues())/(len(data.keys()) or 1), # avg_bytes_all
+                                 sum(x['bytes'] for x in data_itervalues)/(len(data.keys()) or 1), # avg_bytes_all
                                  data[200]['bytes'] / (data[200]['count'] or 1) # avg_bytes_2xx
                                  ])
 
