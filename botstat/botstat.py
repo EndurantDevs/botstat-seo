@@ -63,17 +63,17 @@ def make_stats(records, args):
         )
     )
     for record in records:
-        if date_start is not None:
-            record_date = parser.parse(record['time_local'], fuzzy=True).date()
-            if record_date >= date_start:
-                for bot in ('Googlebot', 'bingbot'):
-                    if bot in record['http_user_agent']:
-                        status = (int(record['status'])/100)*100
-                        stats[record_date][bot][record['host']][status]['count'] += 1
-                        stats[record_date][bot][record['host']][status]['bytes'] += int(record['body_bytes_sent'])
-                        stats[record_date][bot][record['host']][status]['time'] += float(record['request_time'])
-                        break
+        record_date = parser.parse(record['time_local'], fuzzy=True).date()
+        if date_start is None or record_date >= date_start:
+            for bot in ('Googlebot', 'bingbot'):
+                if bot in record['http_user_agent']:
+                    status = (int(record['status'])/100)*100
+                    stats[record_date][bot][record['host']][status]['count'] += 1
+                    stats[record_date][bot][record['host']][status]['bytes'] += int(record['body_bytes_sent'])
+                    stats[record_date][bot][record['host']][status]['time'] += float(record['request_time'])
+                    break
     return stats
+
 
 def make_csv(stats, stream):
     writer = csv.writer(stream)
