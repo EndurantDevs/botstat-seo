@@ -2,13 +2,14 @@ import sys
 import logging
 import argparse
 import os
-from config import detect_log_config
-from config import build_log_format_regex
 from dateutil import parser
 import datetime
 from collections import defaultdict
 import csv
+from config import detect_log_config
+from config import build_log_format_regex
 from tempfile import NamedTemporaryFile
+from mail import send_mail
 
 
 def configure_logging(args):
@@ -32,16 +33,24 @@ def parse_argumets():
     parser.add_argument("--access_log", help="Access log file name. If not specify used stdin.")
     parser.add_argument("--day_start", type=int, help="Days from the beginning of today, all older records skipped")
     parser.add_argument("--date_start", help="Start date for parsing log, all older records skipped")
+    parser.add_argument("--mail-to", help="Email address to send report")
+    parser.add_argument("--mail-from", help="'Email FROM' address")
+    parser.add_argument("--mail-subject", help="Report email subject",
+                        default="Search bot statistics from %s" % datetime.date.today().strftime("%Y/%m/%d"))
+    parser.add_argument("--smtp_host", help="SMTP server host name or ip adddress", default="127.0.0.1")
+    parser.add_argument("--smtp_port", type=int, help="SMTP server port")
     return parser.parse_args()
 
 
-def make_stats(records, args):
+def generate_start_date(args):
     if args.date_start:
-        date_start = parser.parse(args.date_start).date()
+        return parser.parse(args.date_start).date()
     elif args.day_start:
-        date_start = datetime.date.today() - datetime.timedelta(days=args.day_start)
-    else:
-        date_start = None
+        return datetime.date.today() - datetime.timedelta(days=args.day_start)
+
+
+def make_stats(records, args):
+    date_start = generate_start_date(args)
     logging.debug("Date start: %s", date_start)
     #date -> bot -> vhost -> {2xx, 3xx, 4xx, 5xx} -> { count, bytes, time }
     stats = defaultdict(            #date
@@ -113,9 +122,21 @@ def main():
     matches = (parser.match(l) for l in stream)
     records = (m.groupdict() for m in matches if m is not None)
     stats = make_stats(records, args)
-    with NamedTemporaryFile(delete=False) as output_file:
-        make_csv(stats, output_file)
-        print "Result file (only for debug):", output_file.name
+    with NamedTemporaryFile(mode="w+") as csv_stream:
+        make_csv(stats, csv_stream)
+        csv_stream.flush()
+        csv_stream.seek(0)
+        if access_log == "stdin":
+            filename = "stdin.csv"
+        else:
+            filename = "%s.csv" % (os.path.basename(access_log).rsplit('.', 1)[0])
+        start_date = generate_start_date(args)
+        if start_date:
+            text = "Search bot statistics from %s to %s" % (start_date,  datetime.date.today())
+        else:
+            text = "Search bot statistics for all time"
+        send_mail(text, csv_stream, filename, args)
+
 
 if __name__ == '__main__':
     main()
