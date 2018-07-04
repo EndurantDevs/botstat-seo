@@ -154,6 +154,7 @@ def convert_field_names(record):
     for apache, nginx in translations:
         record[nginx] = record[apache]
         del record[apache]
+    record['request_time'] = record['request_time']/10000000.0
     return record
 
 
