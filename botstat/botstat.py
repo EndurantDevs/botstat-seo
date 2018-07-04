@@ -103,6 +103,23 @@ def make_csv(stats, stream):
                                  ])
 
 
+def make_report(stats, access_log, args):
+    with NamedTemporaryFile(mode="w+") as csv_stream:
+        make_csv(stats, csv_stream)
+        csv_stream.flush()
+        csv_stream.seek(0)
+        if access_log == "stdin":
+            filename = "stdin.csv"
+        else:
+            filename = "%s.csv" % (os.path.basename(access_log).rsplit('.', 1)[0])
+        start_date = generate_start_date(args)
+        if start_date:
+            text = "Search bot statistics from %s to %s" % (start_date,  datetime.date.today())
+        else:
+            text = "Search bot statistics for all time"
+        send_mail(text, csv_stream, filename, args)
+
+
 def main():
     args = parse_argumets()
     configure_logging(args)
@@ -127,20 +144,7 @@ def main():
     matches = (parser.match(l) for l in stream)
     records = (m.groupdict() for m in matches if m is not None)
     stats = make_stats(records, args)
-    with NamedTemporaryFile(mode="w+") as csv_stream:
-        make_csv(stats, csv_stream)
-        csv_stream.flush()
-        csv_stream.seek(0)
-        if access_log == "stdin":
-            filename = "stdin.csv"
-        else:
-            filename = "%s.csv" % (os.path.basename(access_log).rsplit('.', 1)[0])
-        start_date = generate_start_date(args)
-        if start_date:
-            text = "Search bot statistics from %s to %s" % (start_date,  datetime.date.today())
-        else:
-            text = "Search bot statistics for all time"
-        send_mail(text, csv_stream, filename, args)
+    make_report(stats, access_log, args)
 
 
 if __name__ == '__main__':
