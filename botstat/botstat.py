@@ -140,7 +140,11 @@ def main():
     else:
         stream = open(access_log)
     parser = build_log_format_regex(log_format)
-    logging.debug("Log parse regexp: %s", parser.pattern)
+    check_regex_required_fields(
+        parser,
+        ('request_time', 'body_bytes_sent', 'status',
+         'http_user_agent', 'time_local',)
+    )
     matches = (parser.match(l) for l in stream)
     records = (m.groupdict() for m in matches if m is not None)
     stats = make_stats(records, args)
