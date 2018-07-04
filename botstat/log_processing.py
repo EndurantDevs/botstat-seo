@@ -4,6 +4,8 @@ import subprocess
 from pyparsing import Literal, Word, ZeroOrMore, OneOrMore, Group
 from pyparsing import printables, quotedString, pythonStyleComment
 from pyparsing import removeQuotes
+import logging
+
 
 REGEX_SPECIAL_CHARS = r'([\.\*\+\?\|\(\)\{\}\[\]])'
 REGEX_LOG_FORMAT_VARIABLE = r'\$([a-z0-9\_]+)'
@@ -13,6 +15,7 @@ LOG_FORMATS = {"combined":'$remote_addr - $remote_user [$time_local] ' \
                "common":'$remote_addr - $remote_user [$time_local] ' \
                         '"$request" $status $body_bytes_sent ' \
                         '"$http_x_forwarded_for"'}
+
 
 semicolon = Literal(';').suppress()
 parameter = Word(''.join(c for c in printables if c not in set('{;"\''))) \
@@ -105,4 +108,11 @@ def build_log_format_regex(log_format):
         log_format = LOG_FORMATS[log_format]
     pattern = re.sub(REGEX_SPECIAL_CHARS, r'\\\1', log_format)
     pattern = re.sub(REGEX_LOG_FORMAT_VARIABLE, '(?P<\\1>.*)', pattern)
+    logging.debug("Log parse regexp: %s", pattern)
     return re.compile(pattern)
+
+
+def check_regex_required_fields(re_expression, fields):
+    for field in fields:
+        if 'P<%s>' % (field,) not in re_expression.pattern:
+            raise SystemExit("\"%s\" is a required field in log format, but it isn't present" % (field,))

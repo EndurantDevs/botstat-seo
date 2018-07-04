@@ -6,8 +6,9 @@ from dateutil import parser
 import datetime
 from collections import defaultdict
 import csv
-from config import detect_log_config
-from config import build_log_format_regex
+from log_processing import detect_log_config
+from log_processing import build_log_format_regex
+from log_processing import check_regex_required_fields
 from tempfile import NamedTemporaryFile
 from mail import send_mail
 
