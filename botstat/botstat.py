@@ -150,7 +150,7 @@ def convert_field_names(record):
     translations = (('request_header_user_agent', 'http_user_agent'),
                     ('response_bytes_clf', 'body_bytes_sent'),
                     ('time_us', 'request_time'),
-                    ('time_received_datetimeobj', 'time_local'))
+                    ('time_received', 'time_local'))
     for apache, nginx in translations:
         record[nginx] = record[apache]
         del record[apache]
