@@ -27,19 +27,19 @@ def parse_argumets():
                                      description="Parse web server logs and make bots statistic")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--log_format", help="Web server log format like 'log_format' in nginx.conf. "
+    parser.add_argument("--log-format", help="Web server log format like 'log_format' in nginx.conf. "
                                              "Accept 'combined', 'common' or format string field "
                                              "names with $")
-    parser.add_argument("--nginx_config", help="Nginx config file name with path")
+    parser.add_argument("--nginx-config", help="Nginx config file name with path")
     parser.add_argument("--access_log", help="Access log file name. If not specify used stdin.")
-    parser.add_argument("--day_start", type=int, help="Days from the beginning of today, all older records skipped")
-    parser.add_argument("--date_start", help="Start date for parsing log, all older records skipped")
+    parser.add_argument("--day-start", type=int, help="Days from the beginning of today, all older records skipped")
+    parser.add_argument("--date-start", help="Start date for parsing log, all older records skipped")
     parser.add_argument("--mail-to", help="Email address to send report")
     parser.add_argument("--mail-from", help="'Email FROM' address")
     parser.add_argument("--mail-subject", help="Report email subject",
                         default="Search bot statistics from %s" % datetime.date.today().strftime("%Y/%m/%d"))
-    parser.add_argument("--smtp_host", help="SMTP server host name or ip adddress", default="127.0.0.1")
-    parser.add_argument("--smtp_port", type=int, help="SMTP server port")
+    parser.add_argument("--smtp-host", help="SMTP server host name or ip adddress", default="127.0.0.1")
+    parser.add_argument("--smtp-port", type=int, help="SMTP server port")
     return parser.parse_args()
 
 
