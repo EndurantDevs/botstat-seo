@@ -6,6 +6,7 @@ from dateutil import parser
 import datetime
 from collections import defaultdict
 import csv
+import apache_log_parser
 from log_processing import detect_log_config
 from log_processing import build_log_format_regex
 from log_processing import check_regex_required_fields
@@ -40,6 +41,8 @@ def parse_argumets():
                         default="Search bot statistics from %s" % datetime.date.today().strftime("%Y/%m/%d"))
     parser.add_argument("--smtp-host", help="SMTP server host name or ip adddress", default="127.0.0.1")
     parser.add_argument("--smtp-port", type=int, help="SMTP server port")
+    parser.add_argument("--server-type", choices=["nginx", "apache"], default="nginx",
+                        help="Web server type, support nginx and apache (default: %(default)s)")
     return parser.parse_args()
 
 
@@ -120,19 +123,13 @@ def make_report(stats, access_log, args):
         send_mail(text, csv_stream, filename, args)
 
 
-def main():
-    args = parse_argumets()
-    configure_logging(args)
-    logging.debug("Arguments: %s", vars(args))
-    access_log = args.access_log
-    log_format = args.log_format
-    if access_log is None and not sys.stdin.isatty():
-        access_log = "stdin"
+def process_nginx(access_log, args):
     if access_log is None:
         access_log, log_format = detect_log_config(args)
+    if args.log_format:
+        log_format = args.log_format
     logging.info("access_log: %s", access_log)
     logging.info("log_format: %s", log_format)
-
     if access_log != "stdin" and not os.path.exists(access_log):
         raise SystemExit("Access log file \"%s\" does not exist" % access_log)
     if access_log == "stdin":
@@ -146,7 +143,44 @@ def main():
          'http_user_agent', 'time_local',)
     )
     matches = (parser.match(l) for l in stream)
-    records = (m.groupdict() for m in matches if m is not None)
+    return (m.groupdict() for m in matches if m is not None)
+
+
+def convert_field_names(record):
+    translations = (('request_header_user_agent', 'http_user_agent'),
+                    ('response_bytes_clf', 'body_bytes_sent'),
+                    ('time_us', 'request_time'),
+                    ('time_received_datetimeobj', 'time_local'))
+    for apache, nginx in translations:
+        record[nginx] = record[apache]
+        del record[apache]
+    return record
+
+
+def process_apache(access_log, args):
+    log_format = args.log_format
+    if access_log is None or log_format is None:
+        raise SystemExit("Access log file or log format was not set for apache " +
+                         "and cannot be detected.")
+    line_parser = apache_log_parser.make_parser(log_format)
+    if access_log == "stdin":
+        stream = sys.stdin
+    else:
+        stream = open(access_log)
+    return (convert_field_names(line_parser(line)) for line in stream)
+
+
+def main():
+    args = parse_argumets()
+    configure_logging(args)
+    logging.debug("Arguments: %s", vars(args))
+    access_log = args.access_log
+    if access_log is None and not sys.stdin.isatty():
+        access_log = "stdin"
+    if args.server_type == 'nginx':
+        records = process_nginx(access_log, args)
+    elif args.server_type == 'apache':
+        records = process_apache(access_log, args)
     stats = make_stats(records, args)
     make_report(stats, access_log, args)
 

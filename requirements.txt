@@ -3,3 +3,6 @@ pyparsing==2.2.0
 python-dateutil==2.7.3
 pytz==2018.5
 six==1.11.0
+apache-log-parser=1.7.0
+ua-parser=0.8.0
+user-agents=1.1.0
