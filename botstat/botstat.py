@@ -97,7 +97,8 @@ def make_stats(records, args):
                     status_record = stats[record_date][bot_name][hostname][status]
                     status_record['count'] += 1
                     if 'body_bytes_sent' in record:
-                        status_record['bytes'] += int(record['body_bytes_sent'])
+                        bytes_sent = 0 if record['body_bytes_sent'] == '-' else int(record['body_bytes_sent'])
+                        status_record['bytes'] += bytes_sent
                     if 'request_time' in record:
                         status_record['time'] += float(record['request_time'])
                     break
