@@ -130,7 +130,7 @@ def make_csv(stats, stream):
                      data[400]['count'],                         # hits_4xx
                      data[500]['count'],                         # hits_5xx
                      sum(x['count'] for x in itervalues(data)),  # hits_all
-                     int(1000 * sum(x['time'] for x in itervalues(data)) / (len(data.keys()) or 1)),  # avg_time_all
+                     int(1000 * sum(x['time'] for x in itervalues(data)) / (sum(x['count'] for x in itervalues(data)) or 1)),  # avg_time_all
                      int(1000 * data[200]['time'] / (data[200]['count'] or 1)),  # avg_time_2xx
                      sum(x['time'] for x in itervalues(data)),   # total_time_all
                      data[200]['time'],                          # total_time_2xx
