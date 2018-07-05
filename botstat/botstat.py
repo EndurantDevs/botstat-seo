@@ -3,6 +3,7 @@ import sys
 import logging
 import argparse
 import os
+import socket
 from dateutil import parser
 import datetime
 from collections import defaultdict
@@ -71,13 +72,15 @@ def make_stats(records, args):
             )
         )
     )
+    system_hostname = socket.gethostname()
     for record in records:
         record_date = parser.parse(record['time_local'], fuzzy=True).date()
         if date_start is None or record_date >= date_start:
             for bot, bot_name in iteritems(BOT_LIST):
                 if bot.lower() in record['http_user_agent'].lower():
                     status = (int(record['status'])/100)*100
-                    status_record = stats[record_date][bot_name][record['host']][status]
+                    hostname = record.get('host', system_hostname)
+                    status_record = stats[record_date][bot_name][hostname][status]
                     status_record['count'] += 1
                     status_record['bytes'] += int(record['body_bytes_sent'])
                     status_record['time'] += float(record['request_time'])
