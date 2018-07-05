@@ -99,7 +99,7 @@ def make_stats(records, args):
         if date_start is None or record_date >= date_start:
             for bot, bot_name in iteritems(BOT_LIST):
                 if bot.lower() in record['http_user_agent'].lower():
-                    status = (int(record['status'])/100)*100
+                    status = (int(int(record['status'])/100))*100
                     hostname = record.get('host', system_hostname)
                     status_record = stats[record_date][bot_name][hostname][status]
                     status_record['count'] += 1
