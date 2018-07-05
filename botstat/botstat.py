@@ -186,9 +186,12 @@ def convert_field_names(record):
     if 'response_bytes' not in record and 'response_bytes_clf' in record:
         record['response_bytes'] = record['response_bytes_clf']
     for apache, nginx in translations:
-        record[nginx] = record[apache]
-        del record[apache]
-    record['request_time'] = record['request_time']/10000000.0
+        if apache in record:
+            record[nginx] = record[apache]
+            del record[apache]
+    if 'request_time' in record:
+        #convert apache time in microseconds to float like nginx
+        record['request_time'] = record['request_time']/10000000.0
     return record
 
 
