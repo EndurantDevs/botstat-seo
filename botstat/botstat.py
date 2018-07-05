@@ -169,8 +169,7 @@ def process_nginx(access_log, args):
     parser = build_log_format_regex(log_format)
     check_regex_required_fields(
         parser,
-        ('request_time', 'body_bytes_sent', 'status',
-         'http_user_agent', 'time_local',)
+        ('status', 'http_user_agent', 'time_local',)
     )
     matches = (parser.match(l) for l in stream)
     return (m.groupdict() for m in matches if m is not None)
