@@ -17,6 +17,7 @@ from tempfile import NamedTemporaryFile
 from .mail import send_mail
 from six import iteritems
 from six import itervalues
+from .log_processing import DEFAULT_APACHE_LOG_FORMAT
 
 # Bots list in format:
 # "bot name in user agent": "pretty name for report"
@@ -161,7 +162,7 @@ def process_nginx(access_log, args):
     if access_log != "stdin" and not os.path.exists(access_log):
         raise SystemExit("Access log file \"%s\" does not exist" % access_log)
     if log_format is None:
-        raise SystemExit("Nginx log_format is not set and can't detect automatically")
+        raise SystemExit("Nginx log_format is not set and can't be detected automatically")
     if access_log == "stdin":
         stream = sys.stdin
     else:
@@ -192,9 +193,19 @@ def convert_field_names(record):
 
 def process_apache(access_log, args):
     log_format = args.log_format
-    if access_log is None or log_format is None:
-        raise SystemExit("Access log file or log format was not set for apache " +
-                         "and cannot be detected.")
+    if log_format is None:
+        response = None
+        while not response or response not in 'yn':
+            response = raw_input(
+                "No log_format for apache configured, use default? \n%s\n(Y/N) "
+                 % (DEFAULT_APACHE_LOG_FORMAT, )
+            ).lower()
+        if response == 'y':
+            log_format = DEFAULT_APACHE_LOG_FORMAT
+        else:
+            raise SystemExit("Apache log_format is not set and can't be detected automatically.")
+    if access_log is None:
+        raise SystemExit("Access log file is not set for apache and cannot be detected.")
     line_parser = apache_log_parser.make_parser(log_format)
     if access_log == "stdin":
         stream = sys.stdin

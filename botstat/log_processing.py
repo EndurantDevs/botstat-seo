@@ -7,6 +7,7 @@ from pyparsing import removeQuotes
 import logging
 
 
+DEFAULT_APACHE_LOG_FORMAT = r'%h %l %u %t "%r" %s %b "%{Referer}i" "%{User-agent}i"'
 REGEX_SPECIAL_CHARS = r'([\.\*\+\?\|\(\)\{\}\[\]])'
 REGEX_LOG_FORMAT_VARIABLE = r'\$([a-z0-9\_]+)'
 LOG_FORMATS = {"combined":'$remote_addr - $remote_user [$time_local] ' \
