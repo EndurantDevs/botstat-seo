@@ -114,10 +114,10 @@ def make_stats(records, args):
 
 def make_csv(stats, stream):
     writer = csv.writer(stream)
-    header = ["date", "bot", "vhost", "hits_2xx", "hits_3xx", "hits_4xx",
-              "hits_5xx", "hits_all", "total_time_all", "total_time_2xx",
-              "total_time_5xx", "bytes_all", "avg_time_all", "avg_time_2xx",
-              "avg_bytes_all", "avg_bytes_2xx"]
+    header = ["Date", "Bot", "Host", "Hits 2xx", "Hits 3xx", "Hits 4xx",
+              "Hits 5xx", "All Hits", "Total Time, sec", "Total Time 2xx, sec",
+              "Total Time 5xx, sec", "Bytes Total", "Avg Time, ms", "Avg Time 2xx, ms",
+              "Avg Bytes", "Avg 2xx Bytes"]
     writer.writerow(header)
     for date, bot_data in iteritems(stats):
         for bot, host_data in iteritems(bot_data):
@@ -133,8 +133,8 @@ def make_csv(stats, stream):
                      data[200]['time'],                          # total_time_2xx
                      data[500]['time'],                          # total_time_5xx
                      sum(x['bytes'] for x in itervalues(data)),  # bytes_all
-                     sum(x['time'] for x in itervalues(data))/(len(data.keys()) or 1),  # avg_time_all
-                     data[200]['time'] / (data[200]['count'] or 1),  # avg_time_2xx
+                     int(1000 * sum(x['time'] for x in itervalues(data))/(len(data.keys()) or 1)),  # avg_time_all
+                     int(1000 * data[200]['time'] / (data[200]['count'] or 1)),  # avg_time_2xx
                      sum(x['bytes'] for x in itervalues(data))/(len(data.keys()) or 1),  # avg_bytes_all
                      data[200]['bytes'] / (data[200]['count'] or 1)  # avg_bytes_2xx
                      ]
