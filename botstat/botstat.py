@@ -1,4 +1,4 @@
-from __future__ import (absolute_import, division, print_function, unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import logging
 import argparse
@@ -13,7 +13,8 @@ from .log_processing import build_log_format_regex
 from .log_processing import check_regex_required_fields
 from tempfile import NamedTemporaryFile
 from .mail import send_mail
-from six import (iteritems, itervalues)
+from six import iteritems
+from six import itervalues
 
 
 def configure_logging(args):
@@ -59,10 +60,10 @@ def make_stats(records, args):
     date_start = generate_start_date(args)
     logging.debug("Date start: %s", date_start)
     #date -> bot -> vhost -> {2xx, 3xx, 4xx, 5xx} -> { count, bytes, time }
-    stats = defaultdict(            #date
-        lambda:defaultdict(         #bot name
-            lambda: defaultdict(    #vhost
-                lambda:defaultdict( #http code
+    stats = defaultdict(            # date
+        lambda:defaultdict(         # bot name
+            lambda: defaultdict(    # vhost
+                lambda:defaultdict( # http code
                     lambda:{'count':0, 'bytes':0, 'time':.0}
                 )
             )
@@ -74,9 +75,10 @@ def make_stats(records, args):
             for bot in ('Googlebot', 'bingbot'):
                 if bot in record['http_user_agent']:
                     status = (int(record['status'])/100)*100
-                    stats[record_date][bot][record['host']][status]['count'] += 1
-                    stats[record_date][bot][record['host']][status]['bytes'] += int(record['body_bytes_sent'])
-                    stats[record_date][bot][record['host']][status]['time'] += float(record['request_time'])
+                    status_record = stats[record_date][bot][record['host']][status]
+                    status_record['count'] += 1
+                    status_record['bytes'] += int(record['body_bytes_sent'])
+                    status_record['time'] += float(record['request_time'])
                     break
     return stats
 
@@ -88,25 +90,26 @@ def make_csv(stats, stream):
               "total_time_5xx", "bytes_all", "avg_time_all", "avg_time_2xx",
               "avg_bytes_all", "avg_bytes_2xx"]
     writer.writerow(header)
-
     for date, bot_data in iteritems(stats):
         for bot, host_data in iteritems(bot_data):
             for host, data in iteritems(host_data):
-                writer.writerow([date.strftime('%Y/%m/%d'), bot, host, # date, bot, vhost
-                                 data[200]['count'], # hits_2xx
-                                 data[300]['count'], # hits_3xx
-                                 data[400]['count'], # hits_4xx
-                                 data[500]['count'], # hits_5xx
-                                 sum(x['count'] for x in itervalues(data)), # hits_all
-                                 sum(x['time'] for x in itervalues(data)),  # total_time_all
-                                 data[200]['time'], # total_time_2xx
-                                 data[500]['time'], # total_time_5xx
-                                 sum(x['bytes'] for x in itervalues(data)), # bytes_all
-                                 sum(x['time'] for x in itervalues(data))/(len(data.keys()) or 1), # avg_time_all
-                                 data[200]['time'] / (data[200]['count'] or 1), # avg_time_2xx
-                                 sum(x['bytes'] for x in itervalues(data))/(len(data.keys()) or 1), # avg_bytes_all
-                                 data[200]['bytes'] / (data[200]['count'] or 1) # avg_bytes_2xx
-                                 ])
+                writer.writerow(
+                    [date.strftime('%Y/%m/%d'), bot, host, # date, bot, vhost
+                     data[200]['count'], # hits_2xx
+                     data[300]['count'], # hits_3xx
+                     data[400]['count'], # hits_4xx
+                     data[500]['count'], # hits_5xx
+                     sum(x['count'] for x in itervalues(data)), # hits_all
+                     sum(x['time'] for x in itervalues(data)),  # total_time_all
+                     data[200]['time'], # total_time_2xx
+                     data[500]['time'], # total_time_5xx
+                     sum(x['bytes'] for x in itervalues(data)), # bytes_all
+                     sum(x['time'] for x in itervalues(data))/(len(data.keys()) or 1), # avg_time_all
+                     data[200]['time'] / (data[200]['count'] or 1), # avg_time_2xx
+                     sum(x['bytes'] for x in itervalues(data))/(len(data.keys()) or 1), # avg_bytes_all
+                     data[200]['bytes'] / (data[200]['count'] or 1) # avg_bytes_2xx
+                     ]
+                )
 
 
 def make_report(stats, access_log, args):

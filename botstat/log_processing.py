@@ -54,7 +54,8 @@ def extract_access_logs(config):
 
 
 def extract_log_format(config):
-    log_format = Literal('log_format') + parameter + Group(OneOrMore(parameter)) + semicolon
+    log_format = Literal('log_format') + parameter \
+                 + Group(OneOrMore(parameter)) + semicolon
     log_format.ignore(pythonStyleComment)
     for directive in log_format.searchString(config).asList():
         name = directive[1]
