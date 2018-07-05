@@ -16,6 +16,8 @@ from .mail import send_mail
 from six import iteritems
 from six import itervalues
 
+BOT_LIST = {'Googlebot':'Google', 'Bingbot':'Bing', 'Slurp':'Yahoo', 'DuckDuckBot':'DuckDuckGo', 'Baiduspider':'Baidu', 'YandexBot':'Yandex', 'Sogou':'Sogou', 'ia_archiver': 'Alexa'}
+
 
 def configure_logging(args):
     log_level = logging.WARNING
@@ -72,10 +74,10 @@ def make_stats(records, args):
     for record in records:
         record_date = parser.parse(record['time_local'], fuzzy=True).date()
         if date_start is None or record_date >= date_start:
-            for bot in ('Googlebot', 'bingbot'):
+            for bot, bot_name in iteritems(BOT_LIST):
                 if bot in record['http_user_agent']:
                     status = (int(record['status'])/100)*100
-                    status_record = stats[record_date][bot][record['host']][status]
+                    status_record = stats[record_date][bot_name][record['host']][status]
                     status_record['count'] += 1
                     status_record['bytes'] += int(record['body_bytes_sent'])
                     status_record['time'] += float(record['request_time'])
