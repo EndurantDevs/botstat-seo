@@ -1,6 +1,7 @@
 # BotStat
 
-BotStat is a small utility to monitor your website crawl rate and detect the source of possible problems. Crawl rate is dependent on many parameters. We try to give a picture of your site productivity for different search engines: Google, Bing, Yahoo, Baidu, Yandex, Sogou, and others.
+BotStat is a small utility to monitor the crawl rate of your website by search engine bots. Also, it helps to detect the source of possible problems. Crawl rate is dependent on many parameters. We try to give a picture of your site productivity for different search engines: Google, Bing, Yahoo, Baidu, Yandex, Sogou, and others.
+
 For example, according to Google's Webmaster Blog, if your website responds quickly for a while, the crawl limit goes up, meaning more connections can be used to crawl. If the site slows down or responds with server errors, the limit goes down, and Googlebot crawls less. Other search engines have similar logic in most cases.
 
 ## Getting Started
