@@ -7,6 +7,7 @@ import socket
 from dateutil import parser
 import datetime
 from collections import defaultdict
+from collections import Counter
 import csv
 import apache_log_parser
 from .log_processing import detect_log_config
@@ -67,7 +68,7 @@ def make_stats(records, args):
         lambda:defaultdict(         # bot name
             lambda: defaultdict(    # vhost
                 lambda:defaultdict( # http code
-                    lambda:{'count':0, 'bytes':0, 'time':.0}
+                    Counter
                 )
             )
         )
@@ -82,8 +83,10 @@ def make_stats(records, args):
                     hostname = record.get('host', system_hostname)
                     status_record = stats[record_date][bot_name][hostname][status]
                     status_record['count'] += 1
-                    status_record['bytes'] += int(record['body_bytes_sent'])
-                    status_record['time'] += float(record['request_time'])
+                    if 'body_bytes_sent' in record:
+                        status_record['bytes'] += int(record['body_bytes_sent'])
+                    if 'request_time' in record:
+                        status_record['time'] += float(record['request_time'])
                     break
     return stats
 
