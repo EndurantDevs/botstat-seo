@@ -5,17 +5,18 @@ from pyparsing import Literal, Word, ZeroOrMore, OneOrMore, Group
 from pyparsing import printables, quotedString, pythonStyleComment
 from pyparsing import removeQuotes
 import logging
+from six.moves import input
 
 
 DEFAULT_APACHE_LOG_FORMAT = r'%h %l %u %t "%r" %s %b "%{Referer}i" "%{User-agent}i"'
 REGEX_SPECIAL_CHARS = r'([\.\*\+\?\|\(\)\{\}\[\]])'
 REGEX_LOG_FORMAT_VARIABLE = r'\$([a-z0-9\_]+)'
-LOG_FORMATS = {"combined":'$remote_addr - $remote_user [$time_local] ' \
-                          '"$request" $status $body_bytes_sent ' \
-                          '"$http_referer" "$http_user_agent"',
-               "common":'$remote_addr - $remote_user [$time_local] ' \
-                        '"$request" $status $body_bytes_sent ' \
-                        '"$http_x_forwarded_for"'}
+LOG_FORMATS = {"combined": '$remote_addr - $remote_user [$time_local] ' +
+                           '"$request" $status $body_bytes_sent ' +
+                           '"$http_referer" "$http_user_agent"',
+               "common": '$remote_addr - $remote_user [$time_local] ' +
+                         '"$request" $status $body_bytes_sent ' +
+                         '"$http_x_forwarded_for"'}
 
 
 semicolon = Literal(';').suppress()
@@ -69,7 +70,7 @@ def choose_one(choices, prompt):
         print('%d. %s' % (idx + 1, choice))
     selected = None
     while selected is None or not 0 <= selected > len(choices):
-        selected = raw_input(prompt)
+        selected = input(prompt)
         try:
             selected = int(selected)
         except ValueError:

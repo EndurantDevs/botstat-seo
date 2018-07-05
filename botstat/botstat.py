@@ -17,6 +17,7 @@ from tempfile import NamedTemporaryFile
 from .mail import send_mail
 from six import iteritems
 from six import itervalues
+from six.moves import input
 from .log_processing import DEFAULT_APACHE_LOG_FORMAT
 
 # Bots list in format:
@@ -44,26 +45,32 @@ def configure_logging(args):
 
 
 def parse_argumets():
-    parser = argparse.ArgumentParser(prog="botstat",
-                                     description="Parse web server logs and make bots statistic")
-    parser.add_argument("--verbose", action="store_true", help="Verbose output")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--log-format", help="Web server log format like 'log_format' in nginx.conf. "
-                                             "Accept 'combined', 'common' or format string field "
-                                             "names with $")
-    parser.add_argument("--nginx-config", help="Nginx config file name with path")
-    parser.add_argument("--access_log", help="Access log file name. If not specify used stdin.")
-    parser.add_argument("--day-start", type=int, help="Days from the beginning of today, all older records skipped")
-    parser.add_argument("--date-start", help="Start date for parsing log, all older records skipped")
-    parser.add_argument("--mail-to", help="Email address to send report")
-    parser.add_argument("--mail-from", help="'Email FROM' address")
-    parser.add_argument("--mail-subject", help="Report email subject",
-                        default="Search bot statistics from %s" % datetime.date.today().strftime("%Y/%m/%d"))
-    parser.add_argument("--smtp-host", help="SMTP server host name or ip adddress", default="127.0.0.1")
-    parser.add_argument("--smtp-port", type=int, help="SMTP server port")
-    parser.add_argument("--server-type", choices=["nginx", "apache"], default="nginx",
-                        help="Web server type, support nginx and apache (default: %(default)s)")
-    return parser.parse_args()
+    arg_parser = argparse.ArgumentParser(
+        prog="botstat",
+        description="Parse web server logs and make bots statistic"
+    )
+    arg_parser.add_argument("--verbose", action="store_true", help="Verbose output")
+    arg_parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    arg_parser.add_argument(
+        "--log-format",
+        help="Web server log format like 'log_format' in nginx.conf. "
+             "Accept 'combined', 'common' or format string field names with $")
+    arg_parser.add_argument("--nginx-config", help="Nginx config file name with path")
+    arg_parser.add_argument("--access_log", help="Access log file name. If not specify used stdin.")
+    arg_parser.add_argument("--day-start", type=int, help="Days from the beginning of today, all older records skipped")
+    arg_parser.add_argument("--date-start", help="Start date for parsing log, all older records skipped")
+    arg_parser.add_argument("--mail-to", help="Email address to send report")
+    arg_parser.add_argument("--mail-from", help="'Email FROM' address")
+    arg_parser.add_argument(
+        "--mail-subject", help="Report email subject",
+        default="Search bot statistics from %s" % datetime.date.today().strftime("%Y/%m/%d"))
+    arg_parser.add_argument("--smtp-host", help="SMTP server host name or ip adddress", default="127.0.0.1")
+    arg_parser.add_argument("--smtp-port", type=int, help="SMTP server port")
+    arg_parser.add_argument(
+        "--server-type", choices=["nginx", "apache"], default="nginx",
+        help="Web server type, support nginx and apache (default: %(default)s)"
+    )
+    return arg_parser.parse_args()
 
 
 def generate_start_date(args):
@@ -76,11 +83,11 @@ def generate_start_date(args):
 def make_stats(records, args):
     date_start = generate_start_date(args)
     logging.debug("Date start: %s", date_start)
-    #date -> bot -> vhost -> {2xx, 3xx, 4xx, 5xx} -> { count, bytes, time }
-    stats = defaultdict(            # date
-        lambda:defaultdict(         # bot name
-            lambda: defaultdict(    # vhost
-                lambda:defaultdict( # http code
+    # date -> bot -> vhost -> {2xx, 3xx, 4xx, 5xx} -> { count, bytes, time }
+    stats = defaultdict(              # date
+        lambda: defaultdict(          # bot name
+            lambda: defaultdict(      # vhost
+                lambda: defaultdict(  # http code
                     Counter
                 )
             )
@@ -116,20 +123,20 @@ def make_csv(stats, stream):
         for bot, host_data in iteritems(bot_data):
             for host, data in iteritems(host_data):
                 writer.writerow(
-                    [date.strftime('%Y/%m/%d'), bot, host, # date, bot, vhost
-                     data[200]['count'], # hits_2xx
-                     data[300]['count'], # hits_3xx
-                     data[400]['count'], # hits_4xx
-                     data[500]['count'], # hits_5xx
-                     sum(x['count'] for x in itervalues(data)), # hits_all
-                     sum(x['time'] for x in itervalues(data)),  # total_time_all
-                     data[200]['time'], # total_time_2xx
-                     data[500]['time'], # total_time_5xx
-                     sum(x['bytes'] for x in itervalues(data)), # bytes_all
-                     sum(x['time'] for x in itervalues(data))/(len(data.keys()) or 1), # avg_time_all
-                     data[200]['time'] / (data[200]['count'] or 1), # avg_time_2xx
-                     sum(x['bytes'] for x in itervalues(data))/(len(data.keys()) or 1), # avg_bytes_all
-                     data[200]['bytes'] / (data[200]['count'] or 1) # avg_bytes_2xx
+                    [date.strftime('%Y/%m/%d'), bot, host,       # date, bot, vhost
+                     data[200]['count'],                         # hits_2xx
+                     data[300]['count'],                         # hits_3xx
+                     data[400]['count'],                         # hits_4xx
+                     data[500]['count'],                         # hits_5xx
+                     sum(x['count'] for x in itervalues(data)),  # hits_all
+                     sum(x['time'] for x in itervalues(data)),   # total_time_all
+                     data[200]['time'],                          # total_time_2xx
+                     data[500]['time'],                          # total_time_5xx
+                     sum(x['bytes'] for x in itervalues(data)),  # bytes_all
+                     sum(x['time'] for x in itervalues(data))/(len(data.keys()) or 1),  # avg_time_all
+                     data[200]['time'] / (data[200]['count'] or 1),  # avg_time_2xx
+                     sum(x['bytes'] for x in itervalues(data))/(len(data.keys()) or 1),  # avg_bytes_all
+                     data[200]['bytes'] / (data[200]['count'] or 1)  # avg_bytes_2xx
                      ]
                 )
 
@@ -168,12 +175,12 @@ def process_nginx(access_log, args):
         stream = sys.stdin
     else:
         stream = open(access_log)
-    parser = build_log_format_regex(log_format)
+    regex_parser = build_log_format_regex(log_format)
     check_regex_required_fields(
-        parser,
+        regex_parser,
         ('status', 'http_user_agent', 'time_local',)
     )
-    matches = (parser.match(l) for l in stream)
+    matches = (regex_parser.match(l) for l in stream)
     return (m.groupdict() for m in matches if m is not None)
 
 
@@ -190,8 +197,7 @@ def convert_field_names(record):
             record[nginx] = record[apache]
             del record[apache]
     if 'request_time' in record:
-        #convert apache time in microseconds to float like nginx
-        record['request_time'] = record['request_time']/10000000.0
+        record['request_time'] = record['request_time']/10000000.0  # convert time from microseconds to float like nginx
     return record
 
 
@@ -200,9 +206,9 @@ def process_apache(access_log, args):
     if log_format is None:
         response = None
         while not response or response not in 'yn':
-            response = raw_input(
+            response = input(
                 "No log_format for apache configured, use default? \n%s\n(Y/N) "
-                 % (DEFAULT_APACHE_LOG_FORMAT, )
+                % (DEFAULT_APACHE_LOG_FORMAT, )
             ).lower()
         if response == 'y':
             log_format = DEFAULT_APACHE_LOG_FORMAT
@@ -229,6 +235,8 @@ def main():
         records = process_nginx(access_log, args)
     elif args.server_type == 'apache':
         records = process_apache(access_log, args)
+    else:
+        raise SystemExit("Unknown server type %s" % (args.server_type,))
     stats = make_stats(records, args)
     make_report(stats, access_log, args)
 
