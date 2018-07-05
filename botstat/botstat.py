@@ -47,7 +47,8 @@ def configure_logging(args):
 def parse_argumets():
     arg_parser = argparse.ArgumentParser(
         prog="botstat",
-        description="Parse web server logs and make bots statistic"
+        description="Parse web server logs and make bots statistic",
+        fromfile_prefix_chars='@'
     )
     arg_parser.add_argument("--verbose", action="store_true", help="Verbose output")
     arg_parser.add_argument("--debug", action="store_true", help="Enable debug mode")
