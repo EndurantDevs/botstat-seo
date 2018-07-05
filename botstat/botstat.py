@@ -152,12 +152,16 @@ def make_report(stats, access_log, args):
 def process_nginx(access_log, args):
     if access_log is None:
         access_log, log_format = detect_log_config(args)
+    else:
+        log_format = None
     if args.log_format:
         log_format = args.log_format
     logging.info("access_log: %s", access_log)
     logging.info("log_format: %s", log_format)
     if access_log != "stdin" and not os.path.exists(access_log):
         raise SystemExit("Access log file \"%s\" does not exist" % access_log)
+    if log_format is None:
+        raise SystemExit("Nginx log_format is not set and can't detect automatically")
     if access_log == "stdin":
         stream = sys.stdin
     else:
