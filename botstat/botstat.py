@@ -18,7 +18,19 @@ from .mail import send_mail
 from six import iteritems
 from six import itervalues
 
-BOT_LIST = {'Googlebot':'Google', 'Bingbot':'Bing', 'Slurp':'Yahoo', 'DuckDuckBot':'DuckDuckGo', 'Baiduspider':'Baidu', 'YandexBot':'Yandex', 'Sogou':'Sogou', 'ia_archiver': 'Alexa'}
+# Bots list in format:
+# "bot name in user agent": "pretty name for report"
+# if some bot has several identify string in user agent field
+# than need to specify all them as key with one value, statistic
+# will aggregate by pretty bot name
+BOT_LIST = {'Googlebot': 'Google',
+            'Bingbot': 'Bing',
+            'Slurp': 'Yahoo',
+            'DuckDuckBot': 'DuckDuckGo',
+            'Baiduspider': 'Baidu',
+            'YandexBot': 'Yandex',
+            'Sogou': 'Sogou',
+            'ia_archiver': 'Alexa'}
 
 
 def configure_logging(args):
