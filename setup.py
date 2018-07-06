@@ -2,9 +2,9 @@ from setuptools import setup
 
 setup(
     name='botstat',
-    version='0.0.1',
+    version='0.0.2',
     description='Search engine analyser for nginx/apache web servers',
-    long_description=open('README.md').read(),
+    long_description=open('README').read(),
     license='MIT',
     url='https://www.endurantdevs.com',
     author='Endurant Devs',
