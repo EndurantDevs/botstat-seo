@@ -10,14 +10,14 @@ from collections import defaultdict
 from collections import Counter
 import csv
 import apache_log_parser
-from .log_processing import detect_log_config
-from .log_processing import build_log_format_regex
-from .log_processing import check_regex_required_fields
 from tempfile import NamedTemporaryFile
 from .mail import send_mail
 from six import iteritems
 from six import itervalues
 from six.moves import input
+from .log_processing import detect_log_config
+from .log_processing import build_log_format_regex
+from .log_processing import check_regex_required_fields
 from .log_processing import DEFAULT_APACHE_LOG_FORMAT
 
 # Bots list in format:
