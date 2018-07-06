@@ -50,26 +50,70 @@ def parse_argumets():
         prog="botstat",
         description="Parse web server logs and make bots statistic",
     )
-    arg_parser.add('-c', '--my-config', required=False, is_config_file=True, help='config file path')
-    arg_parser.add_argument("--verbose", action="store_true", help="Verbose output")
-    arg_parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    arg_parser.add(
+        '-c', '--my-config',
+        required=False,
+        is_config_file=True,
+        help='config file path'
+    )
+    arg_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Verbose output"
+    )
+    arg_parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode"
+    )
     arg_parser.add_argument(
         "--log-format",
         help="Web server log format like 'log_format' in nginx.conf. "
-             "Accept 'combined', 'common' or format string field names with $")
-    arg_parser.add_argument("--nginx-config", help="Nginx config file name with path")
-    arg_parser.add_argument("--access_log", help="Access log file name. If not specify used stdin.")
-    arg_parser.add_argument("--day-start", type=int, help="Days from the beginning of today, all older records skipped")
-    arg_parser.add_argument("--date-start", help="Start date for parsing log, all older records skipped")
-    arg_parser.add_argument("--mail-to", help="Email address to send report")
-    arg_parser.add_argument("--mail-from", help="'Email FROM' address")
+             "Accept 'combined', 'common' or format string field names with $"
+    )
     arg_parser.add_argument(
-        "--mail-subject", help="Report email subject",
-        default="Search bot statistics from %s" % datetime.date.today().strftime("%Y/%m/%d"))
-    arg_parser.add_argument("--smtp-host", help="SMTP server host name or ip adddress", default="127.0.0.1")
-    arg_parser.add_argument("--smtp-port", type=int, help="SMTP server port")
+        "--nginx-config",
+        help="Nginx config file name with path"
+    )
     arg_parser.add_argument(
-        "--server-type", choices=["nginx", "apache"], default="nginx",
+        "--access_log",
+        help="Access log file name. If not specify used stdin."
+    )
+    arg_parser.add_argument(
+        "--day-start",
+        type=int,
+        help="Days from the beginning of today, all older records skipped"
+    )
+    arg_parser.add_argument(
+        "--date-start",
+        help="Start date for parsing log, all older records skipped"
+    )
+    arg_parser.add_argument(
+        "--mail-to",
+        help="Email address to send report"
+    )
+    arg_parser.add_argument(
+        "--mail-from", help="'Email FROM' address"
+    )
+    arg_parser.add_argument(
+        "--mail-subject",
+        help="Report email subject",
+        default="Search bot statistics from %s" % datetime.date.today().strftime("%Y/%m/%d")
+    )
+    arg_parser.add_argument(
+        "--smtp-host",
+        help="SMTP server host name or ip adddress",
+        default="127.0.0.1"
+    )
+    arg_parser.add_argument(
+        "--smtp-port",
+        type=int,
+        help="SMTP server port"
+    )
+    arg_parser.add_argument(
+        "--server-type",
+        choices=["nginx", "apache"],
+        default="nginx",
         help="Web server type, support nginx and apache (default: %(default)s)"
     )
     return arg_parser.parse_args()
@@ -132,7 +176,9 @@ def make_csv(stats, stream):
                      data[400]['count'],                         # hits_4xx
                      data[500]['count'],                         # hits_5xx
                      sum(x['count'] for x in itervalues(data)),  # hits_all
-                     int(1000 * sum(x['time'] for x in itervalues(data)) / (sum(x['count'] for x in itervalues(data)) or 1)),  # avg_time_all
+                     int(1000 * sum(
+                                    x['time'] for x in itervalues(data)
+                                ) / (sum(x['count'] for x in itervalues(data)) or 1)),  # avg_time_all
                      int(1000 * data[200]['time'] / (data[200]['count'] or 1)),  # avg_time_2xx
                      sum(x['time'] for x in itervalues(data)),   # total_time_all
                      data[200]['time'],                          # total_time_2xx

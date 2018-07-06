@@ -84,8 +84,8 @@ def detect_log_config(arguments):
         config = detect_nginx_config_path()
     if not os.path.exists(config):
         raise SystemExit('Nginx config file not found: %s' % config)
-    with open(config) as f:
-        config_str = f.read()
+    with open(config) as fobj:
+        config_str = fobj.read()
     access_logs = dict(extract_access_logs(config_str))
     if not access_logs:
         raise SystemExit('Access log file is not provided and ngxtop cannot detect '
