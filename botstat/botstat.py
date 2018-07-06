@@ -10,7 +10,7 @@ from collections import defaultdict
 from collections import Counter
 import csv
 import apache_log_parser
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryFile
 from .mail import send_mail
 from six import iteritems
 from six import itervalues
@@ -191,7 +191,7 @@ def make_csv(stats, stream):
 
 
 def make_report(stats, access_log, args):
-    with NamedTemporaryFile(mode="w+") as csv_stream:
+    with TemporaryFile(mode="w+") as csv_stream:
         make_csv(stats, csv_stream)
         csv_stream.flush()
         csv_stream.seek(0)
