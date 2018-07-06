@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import logging
-import argparse
+import configargparse
 import os
 import socket
 from dateutil import parser
@@ -45,11 +45,12 @@ def configure_logging(args):
 
 
 def parse_argumets():
-    arg_parser = argparse.ArgumentParser(
+    arg_parser = configargparse.ArgParser(
+        default_config_files=['/etc/botstat.conf', '~/.botstat'],
         prog="botstat",
         description="Parse web server logs and make bots statistic",
-        fromfile_prefix_chars='@'
     )
+    arg_parser.add('-c', '--my-config', required=False, is_config_file=True, help='config file path')
     arg_parser.add_argument("--verbose", action="store_true", help="Verbose output")
     arg_parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     arg_parser.add_argument(

@@ -1,9 +1,7 @@
---debug
---log-format
-'$remote_addr $host $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time -$http_x_forwarded_for-'
---smtp-port
-10025
---mail-to
-"username@server.com"
---mail-from
-"root@localhost"
+debug=true
+server-type=nginx
+access_log=/val/log/nginx/access.log
+log-format=$remote_addr $host $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time -$http_x_forwarded_for-
+smtp-port=10025
+mail-to=username@server.com
+mail-from=root@localhost

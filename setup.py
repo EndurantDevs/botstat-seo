@@ -28,7 +28,9 @@ setup(
     ],
     keywords='cli apache nginx system',
     packages=['botstat'],
-    install_requires=['pyparsing', 'dateutils', 'ua-parser', 'user-agents', 'apache-log-parser'],
+    install_requires=['pyparsing', 'dateutils', 'ua-parser',
+                      'user-agents', 'apache-log-parser',
+                      'ConfigArgParse'],
     entry_points={
         'console_scripts': [
             'botstat = botstat.botstat:main',

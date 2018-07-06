@@ -6,3 +6,5 @@ six==1.11.0
 apache-log-parser==1.7.0
 ua-parser==0.8.0
 user-agents==1.1.0
+ConfigArgParse==0.13.0
+
