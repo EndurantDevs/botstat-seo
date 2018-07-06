@@ -29,26 +29,26 @@ Usually this tool is used with `cron`. To go the same way, please add your confi
 ## Running the tests
 
 To be sure everything is fine before installation from sources, just run:
-```bash
+```
 python setup.py test
 ```
 Or
-```bash
+```
 pytest tests/
 ```
 
 ## Usage
 
 If you have config at ~/.botstat or /etc/botstat.conf you can just do
-```bash
+```
 botstat
 ```
 or if you have config on custom path
-```bash
+```
 botstat -c /path/to/your/config 
 ```
 or if you like to provide all params from command line
-```bash
+```
 botstat --access-log access.log --debug --log-format '$remote_addr $host $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time -$http_x_forwarded_for-' --smtp-port 10025 --mail-to "you@gmail.com" --mail-from "root@localhost"
 ```
 

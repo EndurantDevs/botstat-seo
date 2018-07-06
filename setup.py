@@ -6,9 +6,9 @@ setup(
     description='Search engine analyser for nginx/apache web servers',
     long_description=open('README.md').read(),
     license='MIT',
-    url='',
-    author='Sergey Taran',
-    author_email='taransergey@gmail.com',
+    url='https://www.endurantdevs.com',
+    author='Endurant Devs',
+    author_email='info@endurantdevs.com',
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
