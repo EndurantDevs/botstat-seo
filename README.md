@@ -52,9 +52,9 @@ or if you like to provide all params from command line
 botstat --access-log access.log --debug --log-format '$remote_addr $host $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time -$http_x_forwarded_for-' --smtp-port 10025 --mail-to "you@gmail.com" --mail-from "root@localhost"
 ```
 
-##Help
+## Help
 
-```bash
+```
 $ botstat --help
 usage: botstat [-h] [-c MY_CONFIG] [--verbose] [--debug]
                [--log-format LOG_FORMAT] [--nginx-config NGINX_CONFIG]
