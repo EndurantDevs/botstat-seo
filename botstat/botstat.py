@@ -76,7 +76,7 @@ def parse_argumets():
         help="Nginx config file name with path"
     )
     arg_parser.add_argument(
-        "--access_log",
+        "--access-log",
         help="Access log file name. If not specify used stdin."
     )
     arg_parser.add_argument(
