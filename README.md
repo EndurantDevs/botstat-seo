@@ -16,6 +16,17 @@ What things you need to install the software and how to install them
 Give examples
 ```
 
+## Running the tests
+
+Just run:
+```bash
+python setup.py test
+```
+Or
+```bash
+pytest tests/
+```
+
 ### Installing
 
 A step by step series of examples that tell you how to get a development env running
@@ -33,10 +44,6 @@ until finished
 ```
 
 End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
 
 ### Break down into end to end tests
 

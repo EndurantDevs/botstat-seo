@@ -3,4 +3,7 @@
 venv/
 .DS_Store
 config.cfg
+.eggs
+.pytest_cache
+botstat.egg-info
 

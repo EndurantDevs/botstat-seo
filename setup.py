@@ -28,6 +28,8 @@ setup(
     ],
     keywords='cli apache nginx system',
     packages=['botstat'],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
     install_requires=['pyparsing', 'dateutils', 'ua-parser',
                       'user-agents', 'apache-log-parser',
                       'ConfigArgParse'],
