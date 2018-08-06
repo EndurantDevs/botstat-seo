@@ -11,7 +11,7 @@ For example, according to Google's Webmaster Blog, if your website responds quic
 It is easy to do from `pip`
 
 ```
-pip install botstat-seo
+pip install botstat
 ```
 
 or from sources
