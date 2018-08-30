@@ -10,7 +10,13 @@ from collections import defaultdict
 from collections import Counter
 import csv
 import apache_log_parser
+try:
+    import xlsxwriter
+    xlsxwriter_present = True
+except ImportError:
+    xlsxwriter_present = False
 from tempfile import TemporaryFile
+from tempfile import NamedTemporaryFile
 from .mail import send_mail
 from six import iteritems
 from six import itervalues
@@ -116,6 +122,16 @@ def parse_argumets():
         default="nginx",
         help="Web server type, support nginx and apache (default: %(default)s)"
     )
+    if not xlsxwriter_present:
+        deps_text = " (it's required for xlsxwriter module " \
+                    "- run \"pip install xlsxwriter\" to install)"
+    else:
+        deps_text = ""
+    arg_parser.add_argument(
+        "--xlsx-report",
+        action="store_true",
+        help="Report in excel format{}".format(deps_text)
+    )
     return arg_parser.parse_args()
 
 
@@ -158,53 +174,111 @@ def make_stats(records, args):
     return stats
 
 
-def make_csv(stats, stream):
-    writer = csv.writer(stream)
-    header = ["Date", "Bot", "Host", "Hits 2xx", "Hits 3xx", "Hits 4xx",
-              "Hits 5xx", "All Hits", "Avg Time, ms", "Avg Time 2xx, ms",
-              "Total Time, sec", "Total Time 2xx, sec",
-              "Total Time 5xx, sec", "Bytes Total",
-              "Avg Bytes", "Avg 2xx Bytes"]
-    writer.writerow(header)
+REPORT_HEADER = [
+    "Date", "Bot", "Host", "Hits 2xx", "Hits 3xx", "Hits 4xx",
+     "Hits 5xx", "All Hits", "Avg Time, ms", "Avg Time 2xx, ms",
+     "Total Time, sec", "Total Time 2xx, sec", "Total Time 5xx, sec",
+     "Bytes Total", "Avg Bytes", "Avg 2xx Bytes"
+]
+
+def stats_generator(stats):
+    yield REPORT_HEADER
     for date, bot_data in iteritems(stats):
         for bot, host_data in iteritems(bot_data):
             for host, data in iteritems(host_data):
-                writer.writerow(
-                    [date.strftime('%Y/%m/%d'), bot, host,       # date, bot, vhost
-                     data[200]['count'],                         # hits_2xx
-                     data[300]['count'],                         # hits_3xx
-                     data[400]['count'],                         # hits_4xx
-                     data[500]['count'],                         # hits_5xx
-                     sum(x['count'] for x in itervalues(data)),  # hits_all
-                     int(1000 * sum(
-                                    x['time'] for x in itervalues(data)
-                                ) / (sum(x['count'] for x in itervalues(data)) or 1)),  # avg_time_all
-                     int(1000 * data[200]['time'] / (data[200]['count'] or 1)),  # avg_time_2xx
-                     sum(x['time'] for x in itervalues(data)),   # total_time_all
-                     data[200]['time'],                          # total_time_2xx
-                     data[500]['time'],                          # total_time_5xx
-                     sum(x['bytes'] for x in itervalues(data)),  # bytes_all
-                     sum(x['bytes'] for x in itervalues(data))/(len(data.keys()) or 1),  # avg_bytes_all
-                     data[200]['bytes'] / (data[200]['count'] or 1)  # avg_bytes_2xx
-                     ]
-                )
+                yield [
+                    date.strftime('%Y/%m/%d'), bot, host,       # date, bot, vhost
+                    data[200]['count'],                         # hits_2xx
+                    data[300]['count'],                         # hits_3xx
+                    data[400]['count'],                         # hits_4xx
+                    data[500]['count'],                         # hits_5xx
+                    sum(x['count'] for x in itervalues(data)),  # hits_all
+                    int(1000 * sum(
+                                   x['time'] for x in itervalues(data)
+                               ) / (sum(x['count'] for x in itervalues(data)) or 1)),  # avg_time_all
+                    int(1000 * data[200]['time'] / (data[200]['count'] or 1)),  # avg_time_2xx
+                    sum(x['time'] for x in itervalues(data)),   # total_time_all
+                    data[200]['time'],                          # total_time_2xx
+                    data[500]['time'],                          # total_time_5xx
+                    sum(x['bytes'] for x in itervalues(data)),  # bytes_all
+                    sum(x['bytes'] for x in itervalues(data))/(len(data.keys()) or 1),  # avg_bytes_all
+                    data[200]['bytes'] / (data[200]['count'] or 1)  # avg_bytes_2xx
+                ]
 
 
-def make_report(stats, access_log, args):
+def make_email_text(args):
+    start_date = generate_start_date(args)
+    if start_date:
+        return "Search bot statistics from %s to %s" % (start_date, datetime.date.today())
+    else:
+        return "Search bot statistics for all time"
+
+
+def make_csv_report(stats, access_log, args):
     with TemporaryFile(mode="w+") as csv_stream:
-        make_csv(stats, csv_stream)
+        writer = csv.writer(csv_stream)
+        writer.writerows(stats_generator(stats))
         csv_stream.flush()
         csv_stream.seek(0)
         if access_log == "stdin":
             filename = "stdin.csv"
         else:
             filename = "%s.csv" % (os.path.basename(access_log).rsplit('.', 1)[0])
-        start_date = generate_start_date(args)
-        if start_date:
-            text = "Search bot statistics from %s to %s" % (start_date,  datetime.date.today())
-        else:
-            text = "Search bot statistics for all time"
-        send_mail(text, csv_stream, filename, args)
+        send_mail(make_email_text(args), csv_stream, filename, args)
+
+
+def make_xlsx_report(stats, args):
+    with NamedTemporaryFile(mode="w+") as xlsx_stream:
+        workbook = xlsxwriter.Workbook(xlsx_stream.name)
+        sheet = workbook.add_worksheet("Data")
+        bold = workbook.add_format({'bold': 1})
+        for row, row_data in enumerate(stats_generator(stats)):
+            sheet.write_row(row, 0, row_data)
+        sheet.autofilter(0, 0, row + 1, len(REPORT_HEADER))
+        sheet.set_row(0, cell_format=bold)
+        pages_chart = workbook.add_chart({'type': 'line'})
+        pages_chart.add_series({
+            'name': 'Pages',
+            'categories': '=Data!$A$2:$C${}'.format(row + 1),
+            'values': '=Data!$D$2:$D${}'.format(row + 1),
+        })
+        pages_chart.set_title({'name': 'Pages crawled per day'})
+        pages_chart.set_x_axis({'name': 'Date/Bot/Host'})
+        pages_chart.set_y_axis({'name': 'Pages'})
+        pages_chart.set_style(10)
+        pages_chart.set_size({'width': 1280, 'height': 600})
+        graphics_sheet = workbook.add_worksheet("Graphics")
+        graphics_sheet.insert_chart('A1', pages_chart, {'x_offset': 5, 'y_offset': 5})
+
+        bytes_chart = workbook.add_chart({'type': 'line'})
+        bytes_chart.add_series({
+            'name': 'Bytes',
+            'categories': '=Data!$A$2:$C${}'.format(row + 1),
+            'values': '=Data!$N$2:$N${}'.format(row + 1),
+        })
+        bytes_chart.set_title({'name': 'Bytes downloaded per day'})
+        bytes_chart.set_x_axis({'name': 'Date/Bot/Host'})
+        bytes_chart.set_y_axis({'name': 'Bytes'})
+        bytes_chart.set_style(10)
+        bytes_chart.set_size({'width': 1280, 'height': 600})
+        graphics_sheet.insert_chart('A1', bytes_chart, {'x_offset': 5, 'y_offset': 610})
+
+        time_chart = workbook.add_chart({'type': 'line'})
+        time_chart.add_series({
+            'name': 'Sec',
+            'categories': '=Data!$A$2:$C${}'.format(row + 1),
+            'values': '=Data!$L$2:$L${}'.format(row + 1),
+        })
+        time_chart.set_title({'name': 'Time spent downloading a page'})
+        time_chart.set_x_axis({'name': 'Date/Bot/Host'})
+        time_chart.set_y_axis({'name': 'Seconds'})
+        time_chart.set_style(10)
+        time_chart.set_size({'width': 1280, 'height': 600})
+        graphics_sheet.insert_chart('A1', time_chart, {'x_offset': 5, 'y_offset': 610 + 605})
+        workbook.close()
+        xlsx_stream.flush()
+        xlsx_stream.seek(0)
+        send_mail(make_email_text(args), xlsx_stream, "report.xlsx", args)
 
 
 def process_nginx(access_log, args):
@@ -287,7 +361,10 @@ def main():
     else:
         raise SystemExit("Unknown server type %s" % (args.server_type,))
     stats = make_stats(records, args)
-    make_report(stats, access_log, args)
+    if args.xlsx_report:
+        make_xlsx_report(stats, args)
+    else:
+        make_csv_report(stats, access_log, args)
 
 
 if __name__ == '__main__':
