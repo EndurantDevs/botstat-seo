@@ -362,7 +362,11 @@ def main():
         raise SystemExit("Unknown server type %s" % (args.server_type,))
     stats = make_stats(records, args)
     if args.xlsx_report:
-        make_xlsx_report(stats, args)
+        if xlsxwriter_present:
+            make_xlsx_report(stats, args)
+        else:
+            logging.error("xlsxwriter python module doesn't installed,"
+                          "run 'pip install xlsxwriter' to install.")
     else:
         make_csv_report(stats, access_log, args)
 
