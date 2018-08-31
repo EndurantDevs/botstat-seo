@@ -69,7 +69,7 @@ def choose_one(choices, prompt):
     for idx, choice in enumerate(choices):
         print('%d. %s' % (idx + 1, choice))
     selected = None
-    while selected is None or not 0 <= selected > len(choices):
+    while selected is None or not 0 <= selected <= len(choices):
         selected = input(prompt)
         try:
             selected = int(selected)
