@@ -62,7 +62,7 @@ usage: botstat [-h] [-c MY_CONFIG] [--verbose] [--debug]
                [--date-start DATE_START] [--mail-to MAIL_TO]
                [--mail-from MAIL_FROM] [--mail-subject MAIL_SUBJECT]
                [--smtp-host SMTP_HOST] [--smtp-port SMTP_PORT]
-               [--server-type {nginx,apache}]
+               [--server-type {nginx,apache}] [--xlsx-report]
 
 Parse web server logs and make bots statistic Args that start with '--' (eg.
 --verbose) can also be set in a config file (/etc/botstat.conf or ~/.botstat
@@ -102,6 +102,7 @@ optional arguments:
   --server-type {nginx,apache}
                         Web server type, support nginx and apache (default:
                         nginx)
+  --xlsx-report         Report in excel format
 ```
 
 ## Built With

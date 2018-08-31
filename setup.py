@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='botstat',
-    version='0.0.2',
+    version='0.0.3',
     description='Search engine analyser for nginx/apache web servers',
     long_description=open('README').read(),
     license='MIT',
