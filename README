@@ -3,13 +3,12 @@ BotStat is a small utility to monitor the crawl rate of your website by search e
 
 Also, it helps to detect the source of possible problems. Crawl rate is dependent on many parameters. We try to give a picture of your site productivity for different search engines: Google, Bing, Yahoo, Baidu, Yandex, Sogou, and others.
 
-For example, according to Google's Webmaster Blog, if your website responds quickly for a while, the crawl limit goes up, meaning more connections can be used to crawl. If the site slows down or responds with server errors, the limit goes down, and Googlebot crawls less. Other search engines have similar logic in most cases.
-
+For example, according to Google’s Webmaster Blog, if your website responds quickly for a while, the crawl limit goes up, meaning more connections can be used to crawl. If the site slows down or responds with server errors, the limit goes down, and Googlebot crawls less. Other search engines have similar logic in most cases.
 
 Installing
 It is easy to do from pip
 
-pip install botstat-seo
+pip install botstat
 or from sources
 
 git clone git@github.com:EndurantDevs/botstat-seo.git
@@ -26,8 +25,6 @@ python setup.py test
 Or
 
 pytest tests/
-
-
 Usage
 If you have config at ~/.botstat or /etc/botstat.conf you can just do
 
@@ -38,7 +35,6 @@ botstat -c /path/to/your/config
 or if you like to provide all params from command line
 
 botstat --access-log access.log --debug --log-format '$remote_addr $host $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time -$http_x_forwarded_for-' --smtp-port 10025 --mail-to "you@gmail.com" --mail-from "root@localhost"
-
 Help
 $ botstat --help
 usage: botstat [-h] [-c MY_CONFIG] [--verbose] [--debug]
@@ -47,7 +43,7 @@ usage: botstat [-h] [-c MY_CONFIG] [--verbose] [--debug]
                [--date-start DATE_START] [--mail-to MAIL_TO]
                [--mail-from MAIL_FROM] [--mail-subject MAIL_SUBJECT]
                [--smtp-host SMTP_HOST] [--smtp-port SMTP_PORT]
-               [--server-type {nginx,apache}]
+               [--server-type {nginx,apache}] [--xlsx-report]
 
 Parse web server logs and make bots statistic Args that start with '--' (eg.
 --verbose) can also be set in a config file (/etc/botstat.conf or ~/.botstat
@@ -87,15 +83,13 @@ optional arguments:
   --server-type {nginx,apache}
                         Web server type, support nginx and apache (default:
                         nginx)
-
-
+  --xlsx-report         Report in excel format
 Built With
 ConfigArgParse - A drop-in replacement for argparse that allows options to also be set via config files and/or environment variables
 pytest - Framework makes it easy to write small tests, yet scales to support complex functional testing for applications and libraries
 apache-log-parser - Parses log lines from an apache log
 Authors
 Endurant Devs Team
-
 
 License
 This project is licensed under the MIT License - see the LICENSE file for details
