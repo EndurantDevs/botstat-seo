@@ -214,16 +214,13 @@ def make_email_text(args):
         return "Search bot statistics for all time"
 
 
-def make_csv_report(stats, access_log, args):
+def make_csv_report(stats, args):
     with TemporaryFile(mode="w+") as csv_stream:
         writer = csv.writer(csv_stream)
         writer.writerows(stats_generator(stats))
         csv_stream.flush()
         csv_stream.seek(0)
-        if access_log == "stdin":
-            filename = "stdin.csv"
-        else:
-            filename = "%s.csv" % (os.path.basename(access_log).rsplit(".", 1)[0])
+        filename = "report.csv"
         send_mail(make_email_text(args), csv_stream, filename, args)
 
 
@@ -286,8 +283,10 @@ def process_nginx(access_log, args):
         access_log, log_format = detect_log_config(args)
     else:
         log_format = None
+
     if args.log_format:
         log_format = args.log_format
+
     logging.info("access_log: %s", access_log)
     logging.info("log_format: %s", log_format)
     if access_log != "stdin" and not os.path.exists(access_log):
@@ -368,7 +367,7 @@ def main():
             logging.error("xlsxwriter python module doesn't installed,"
                           "run 'pip install xlsxwriter' to install.")
     else:
-        make_csv_report(stats, access_log, args)
+        make_csv_report(stats, args)
 
 
 if __name__ == "__main__":

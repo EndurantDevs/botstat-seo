@@ -92,14 +92,14 @@ def detect_log_config(arguments):
                          'it from your config file (%s).' % config)
     log_formats = dict(extract_log_format(config_str))
     if len(access_logs) == 1:
-        log_path, format_name = access_logs.items()[0]
+        log_path, format_name = next(iter(access_logs.items()))
         if format_name == 'combined':
             return log_path, LOG_FORMATS["combined"]
         if format_name not in log_formats:
             raise SystemExit('Incorrect format name set in config for access log file "%s"' % log_path)
         return log_path, log_formats[format_name]
     print('Multiple access logs detected in configuration:')
-    log_path = choose_one(access_logs.keys(), 'Select access log file to process: ')
+    log_path = choose_one(list(access_logs.keys()), 'Select access log file to process: ')
     format_name = access_logs[log_path]
     if format_name not in log_formats:
         raise SystemExit('Incorrect format name set in config for access log file "%s"' % log_path)
