@@ -4,7 +4,7 @@ from botstat.botstat import generate_start_date
 from botstat.botstat import make_stats
 
 
-Args = namedtuple("Args", ["date_start", "day_start"])
+Args = namedtuple("Args", ["date_start", "day_start", "date_format"])
 # Make all fields are optional with default value None
 Args.__new__.__defaults__ = (None,) * len(Args._fields)
 

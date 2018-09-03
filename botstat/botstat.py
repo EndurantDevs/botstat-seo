@@ -112,6 +112,12 @@ def parse_argumets():
         default="127.0.0.1"
     )
     arg_parser.add_argument(
+        "--date-format",
+        help="A format string for a date/time field in 'time_local' log field."
+             "To see the full set of format codes supported on your platform, "
+             "consult the strftime(3) documentation.",
+    )
+    arg_parser.add_argument(
         "--smtp-port",
         type=int,
         help="SMTP server port"
@@ -157,7 +163,10 @@ def make_stats(records, args):
     )
     system_hostname = socket.gethostname()
     for record in records:
-        record_date = parser.parse(record["time_local"], fuzzy=True).date()
+        if args.date_format:
+            record_date = datetime.datetime.strptime(record["time_local"], args.date_format).date()
+        else:
+            record_date = parser.parse(record["time_local"], fuzzy=True).date()
         if date_start is None or record_date >= date_start:
             for bot, bot_name in iteritems(BOT_LIST):
                 if bot.lower() in record["http_user_agent"].lower():
