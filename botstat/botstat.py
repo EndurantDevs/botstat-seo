@@ -178,7 +178,7 @@ REPORT_HEADER = [
     "Date", "Bot", "Host", "Hits 2xx", "Hits 3xx", "Hits 4xx",
      "Hits 5xx", "All Hits", "Avg Time, ms", "Avg Time 2xx, ms",
      "Total Time, sec", "Total Time 2xx, sec", "Total Time 5xx, sec",
-     "Bytes Total", "Avg Bytes", "Avg 2xx Bytes"
+     "KBytes Total", "Avg KBytes", "Avg 2xx KBytes"
 ]
 
 def stats_generator(stats):
@@ -200,9 +200,9 @@ def stats_generator(stats):
                     sum(x["time"] for x in itervalues(data)),   # total_time_all
                     data[200]["time"],                          # total_time_2xx
                     data[500]["time"],                          # total_time_5xx
-                    sum(x["bytes"] for x in itervalues(data)),  # bytes_all
-                    sum(x["bytes"] for x in itervalues(data))/(len(data.keys()) or 1),  # avg_bytes_all
-                    data[200]["bytes"] / (data[200]["count"] or 1)  # avg_bytes_2xx
+                    round(sum(x["bytes"] for x in itervalues(data)) / 1024., 2),  # bytes_all
+                    round(sum(x["bytes"] for x in itervalues(data)) / (float(sum(x["count"] for x in itervalues(data))) or 1) / 1024., 2),  # avg_bytes_all
+                    round(data[200]["bytes"] / (float(data[200]["count"]) or 1) / 1024., 2)  # avg_bytes_2xx
                 ]
 
 
@@ -238,40 +238,69 @@ def make_xlsx_report(stats, args):
             "name": "Pages",
             "categories": "=Data!$A$2:$C${}".format(row + 1),
             "values": "=Data!$D$2:$D${}".format(row + 1),
+            'line': {
+                'color': '#3669C9',
+                'width': 2,
+            },
         })
         pages_chart.set_title({"name": "Pages crawled per day"})
         pages_chart.set_x_axis({"name": "Date/Bot/Host"})
         pages_chart.set_y_axis({"name": "Pages"})
         pages_chart.set_style(10)
         pages_chart.set_size({"width": 1280, "height": 600})
-        graphics_sheet = workbook.add_worksheet("Graphics")
+        graphics_sheet = workbook.add_worksheet("Charts")
         graphics_sheet.insert_chart("A1", pages_chart, {"x_offset": 5, "y_offset": 5})
 
         bytes_chart = workbook.add_chart({"type": "line"})
         bytes_chart.add_series({
-            "name": "Bytes",
+            "name": "KBytes",
             "categories": "=Data!$A$2:$C${}".format(row + 1),
             "values": "=Data!$N$2:$N${}".format(row + 1),
+            'line': {
+                'color': '#DA3B21',
+                'width': 2,
+            },
         })
-        bytes_chart.set_title({"name": "Bytes downloaded per day"})
+        bytes_chart.set_title({"name": "KBytes downloaded per day"})
         bytes_chart.set_x_axis({"name": "Date/Bot/Host"})
-        bytes_chart.set_y_axis({"name": "Bytes"})
+        bytes_chart.set_y_axis({"name": "KBytes"})
         bytes_chart.set_style(10)
         bytes_chart.set_size({"width": 1280, "height": 600})
         graphics_sheet.insert_chart("A1", bytes_chart, {"x_offset": 5, "y_offset": 610})
+
+        avgresponse_chart = workbook.add_chart({"type": "line"})
+        avgresponse_chart.add_series({
+            "name": "msec",
+            "categories": "=Data!$A$2:$C${}".format(row + 1),
+            "values": "=Data!$J$2:$J${}".format(row + 1),
+            'line': {
+                'color': '#1C9524',
+                'width': 2,
+            },
+        })
+        avgresponse_chart.set_title({"name": "Avg Response Time, ms"})
+        avgresponse_chart.set_x_axis({"name": "Date/Bot/Host"})
+        avgresponse_chart.set_y_axis({"name": "msec"})
+        avgresponse_chart.set_style(10)
+        avgresponse_chart.set_size({"width": 1280, "height": 600})
+        graphics_sheet.insert_chart("A1", avgresponse_chart, {"x_offset": 5, "y_offset": 610 + 605})
 
         time_chart = workbook.add_chart({"type": "line"})
         time_chart.add_series({
             "name": "Sec",
             "categories": "=Data!$A$2:$C${}".format(row + 1),
             "values": "=Data!$L$2:$L${}".format(row + 1),
+            'line': {
+                'color': 'purple',
+                'width': 2,
+            },
         })
-        time_chart.set_title({"name": "Time spent downloading a page"})
+        time_chart.set_title({"name": "Time spent downloading all pages"})
         time_chart.set_x_axis({"name": "Date/Bot/Host"})
-        time_chart.set_y_axis({"name": "Seconds"})
+        time_chart.set_y_axis({"name": "sec"})
         time_chart.set_style(10)
         time_chart.set_size({"width": 1280, "height": 600})
-        graphics_sheet.insert_chart("A1", time_chart, {"x_offset": 5, "y_offset": 610 + 605})
+        graphics_sheet.insert_chart("A1", time_chart, {"x_offset": 5, "y_offset": 610 + 605 + 605})
         workbook.close()
         xlsx_stream.flush()
         xlsx_stream.seek(0)
@@ -359,7 +388,9 @@ def main():
         records = process_apache(access_log, args)
     else:
         raise SystemExit("Unknown server type %s" % (args.server_type,))
+    logging.info("Log processing started. May take a while")
     stats = make_stats(records, args)
+    logging.info("Log processing finished")
     if args.xlsx_report:
         if xlsxwriter_present:
             make_xlsx_report(stats, args)
