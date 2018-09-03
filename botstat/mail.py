@@ -24,6 +24,10 @@ def send_mail(text, stream, filename, args):
     )
     part['Content-Disposition'] = 'attachment; filename="%s"' % filename
     msg.attach(part)
-    smtp = smtplib.SMTP(smtp_host, smtp_port)
-    smtp.sendmail(send_from, send_to, msg.as_string())
-    smtp.close()
+    try:
+        smtp = smtplib.SMTP(smtp_host, smtp_port)
+        smtp.sendmail(send_from, send_to, msg.as_string())
+        smtp.close()
+    except:
+        raise SystemExit("Please check your SMTP connection configuration. "
+                         "Botstat was not able to send email with your data")
