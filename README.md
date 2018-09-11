@@ -62,8 +62,9 @@ usage: botstat [-h] [-c MY_CONFIG] [--verbose] [--debug]
                [--access-log ACCESS_LOG] [--day-start DAY_START]
                [--date-start DATE_START] [--mail-to MAIL_TO]
                [--mail-from MAIL_FROM] [--mail-subject MAIL_SUBJECT]
-               [--smtp-host SMTP_HOST] [--smtp-port SMTP_PORT]
-               [--server-type {nginx,apache}] [--xlsx-report]
+               [--smtp-host SMTP_HOST] [--date-format DATE_FORMAT]
+               [--smtp-port SMTP_PORT] [--server-type {nginx,apache}]
+               [--xlsx-report]
 
 Parse web server logs and make bots statistic Args that start with '--' (eg.
 --verbose) can also be set in a config file (/etc/botstat.conf or ~/.botstat
@@ -98,12 +99,18 @@ optional arguments:
                         Report email subject
   --smtp-host SMTP_HOST
                         SMTP server host name or ip adddress
+  --date-format DATE_FORMAT
+                        A format string for a date/time field in 'time_local'
+                        log field.To see the full set of format codes
+                        supported on your platform, consult the strftime(3)
+                        documentation.
   --smtp-port SMTP_PORT
                         SMTP server port
   --server-type {nginx,apache}
                         Web server type, support nginx and apache (default:
                         nginx)
-  --xlsx-report         Report in excel format
+  --xlsx-report         Report in excel format (it's required for xlsxwriter
+                        module - run "pip install xlsxwriter" to install)
 ```
 
 ## Built With
