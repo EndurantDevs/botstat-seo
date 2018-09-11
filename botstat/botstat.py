@@ -316,6 +316,49 @@ def make_xlsx_report(stats, args):
         send_mail(make_email_text(args), xlsx_stream, "report.xlsx", args)
 
 
+def get_nearest_line(stream, start):
+    position = stream.tell()
+    while position >= start:
+        stream.seek(position)
+        if position == 0 or stream.read(1) == "\n":
+            return stream.readline()
+        position -= 1
+
+
+def seek_to_date(stream, date_start, regex_parser):
+
+    def parse_date(line):
+        matches = regex_parser.match(line)
+        if matches:
+            record = matches.groupdict()
+            return parser.parse(record["time_local"], fuzzy=True).date()
+
+    start = stream.tell()
+    stream.seek(0, 2) # seek to the end and return position
+    stop = stream.tell() - 1
+    while start < stop:
+        middle = (start + stop)//2
+        stream.seek(middle)
+        line = get_nearest_line(stream, start)
+        if not line:
+            break
+        date = parse_date(line)
+        if date >= date_start:
+            stop = middle
+        else:
+            start = middle
+    if start == stop:
+        stream.seek(start)
+        while start > 0:
+            if stream.read(1) == "\n":
+                break
+            start -= 1
+            stream.seek(start)
+    else:
+        while stream.read(1) not in ("\n", ""):
+            pass
+
+
 def process_nginx(access_log, args):
     if access_log is None:
         access_log, log_format = detect_log_config(args)
@@ -331,15 +374,18 @@ def process_nginx(access_log, args):
         raise SystemExit("Access log file \"%s\" does not exist" % access_log)
     if log_format is None:
         raise SystemExit("Nginx log_format is not set and can't be detected automatically")
-    if access_log == "stdin":
-        stream = sys.stdin
-    else:
-        stream = open(access_log)
     regex_parser = build_log_format_regex(log_format)
     check_regex_required_fields(
         regex_parser,
         ("status", "http_user_agent", "time_local",)
     )
+    if access_log == "stdin":
+        stream = sys.stdin
+    else:
+        stream = open(access_log)
+        date_start = generate_start_date(args)
+        if date_start is not None:
+            seek_to_date(stream, date_start, regex_parser)
     matches = (regex_parser.match(l) for l in stream)
     return (m.groupdict() for m in matches if m is not None)
 
