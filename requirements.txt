@@ -8,4 +8,5 @@ ua-parser==0.8.0
 user-agents==1.1.0
 ConfigArgParse==0.13.0
 pytest==3.6.3
+pytest-cov==2.6.0
 
