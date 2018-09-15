@@ -1,5 +1,5 @@
 # BotStat
-[![Build Status](https://img.shields.io/travis/EndurantDevs/botstat-seo.svg?logo=travis)](https://travis-ci.org/EndurantDevs/botstat-seo) [![Latest Version](https://pypip.in/version/botstat/badge.svg)](https://pypi.python.org/pypi/botstat/) [![Python Versions](https://img.shields.io/pypi/pyversions/botstat.svg)](https://github.com/EndurantDevs/botstat-seo/blob/master/setup.py) [![Tests Coverage](https://img.shields.io/codecov/c/github/EndurantDevs/botstat-seo/master.svg)](https://codecov.io/gh/EndurantDevs/botstat-seo)
+[![Build Status](https://img.shields.io/travis/EndurantDevs/botstat-seo.svg?logo=travis)](https://travis-ci.org/EndurantDevs/botstat-seo) [![Latest Version](https://pypip.in/version/botstat/badge.svg)](https://pypi.python.org/pypi/botstat/) [![Python Versions](https://img.shields.io/pypi/pyversions/botstat.svg)](https://github.com/EndurantDevs/botstat-seo/blob/master/setup.py) [![Tests Coverage](https://img.shields.io/codecov/c/github/EndurantDevs/botstat-seo/master.svg)](https://codecov.io/gh/EndurantDevs/botstat-seo) [![Downloads](http://pepy.tech/badge/botstat)](http://pepy.tech/project/botstat)
 
 BotStat is a small utility to monitor the crawl rate of your website by search engine bots. Once you run it, it sends bots crawl rate statistics in CSV format to your email.
 
