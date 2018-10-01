@@ -1,7 +1,8 @@
 # BotStat
 [![Build Status](https://img.shields.io/travis/EndurantDevs/botstat-seo.svg?logo=travis)](https://travis-ci.org/EndurantDevs/botstat-seo) [![Latest Version](https://pypip.in/version/botstat/badge.svg)](https://pypi.python.org/pypi/botstat/) [![Python Versions](https://img.shields.io/pypi/pyversions/botstat.svg)](https://github.com/EndurantDevs/botstat-seo/blob/master/setup.py) [![Tests Coverage](https://img.shields.io/codecov/c/github/EndurantDevs/botstat-seo/master.svg)](https://codecov.io/gh/EndurantDevs/botstat-seo) [![Downloads](http://pepy.tech/badge/botstat)](http://pepy.tech/project/botstat)
 
-BotStat is a small utility to monitor the crawl rate of your website by search engine bots. Once you run it, it sends bots crawl rate statistics in CSV format to your email.
+BotStat is a small utility to monitor the crawl rate of your website by search engine bots.
+Once you run it, it sends bots crawl rate statistics in CSV format to your email.
 
 Also, it helps to detect the source of possible problems. Crawl rate is dependent on many parameters. We try to give a picture of your site productivity for different search engines: Google, Bing, Yahoo, Baidu, Yandex, Sogou, and others.
 
