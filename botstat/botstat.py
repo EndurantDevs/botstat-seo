@@ -444,14 +444,14 @@ def main():
     else:
         raise SystemExit("Unknown server type %s" % (args.server_type,))
     logging.info("Log processing started. May take a while")
+    if args.xlsx_report:
+        if not xlsxwriter_present:
+            logging.error("xlsxwriter python module is not installed,"
+                          "run 'pip install xlsxwriter' to install.")
     stats = make_stats(records, args)
     logging.info("Log processing finished")
     if args.xlsx_report:
-        if xlsxwriter_present:
-            make_xlsx_report(stats, args)
-        else:
-            logging.error("xlsxwriter python module doesn't installed,"
-                          "run 'pip install xlsxwriter' to install.")
+        make_xlsx_report(stats, args)
     else:
         make_csv_report(stats, args)
 
