@@ -121,7 +121,7 @@ optional arguments:
 * [apache-log-parser](https://github.com/rory/apache-log-parser) - Parses log lines from an apache log
 
 ## Authors
-[<img src="https://github.com/EndurantDevs/botstat-seo/raw/master/docs/img/EndurantDevs-big.png" alt="Endurant Developers Python Team" width="150">](https://www.EndurantDevs.com)
+[<img src="https://github.com/EndurantDevs/botstat-seo/raw/master/docs/img/EndurantDevs-big.png" alt="Endurant Developers Python Team" width="150">](https://www.EndurantDev.com)
 
 ## License
 
